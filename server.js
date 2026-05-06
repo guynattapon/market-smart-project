@@ -76,19 +76,17 @@ app.post('/login', async (req, res) => {
     if (result.rows.length === 0) return res.status(401).json({ message: "ไม่พบผู้ใช้งาน" });
     
     const user = result.rows[0];
-const dbPassword = user.password_hash; // <--- ใช้ชื่อคอลัมน์ให้ตรงกับในรูป (password_hash)
-
-if (dbPassword && (dbPassword.startsWith('$2a$') || dbPassword.startsWith('$2b$'))) {
-    validPassword = await bcrypt.compare(password, dbPassword);
-} else {
-    validPassword = (password === dbPassword);
-}
+    let validPassword = false;
     
-    // ตรวจสอบรหัสผ่าน (รองรับทั้ง bcrypt และ text ธรรมดา)
-    if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
-        validPassword = await bcrypt.compare(password, user.password);
+    // *** จุดสำคัญ: ต้องใช้ user.password_hash ให้ตรงกับในฐานข้อมูล ***
+    const dbPassword = user.password_hash; 
+
+    if (dbPassword && (dbPassword.startsWith('$2a$') || dbPassword.startsWith('$2b$'))) {
+        // ถ้าเป็นรหัสแบบเข้ารหัส (เช่นของ Guy123)
+        validPassword = await bcrypt.compare(password, dbPassword);
     } else {
-        validPassword = (password === user.password);
+        // ถ้าเป็นรหัสธรรมดา (เช่น 1234 ของ admin)
+        validPassword = (password === dbPassword);
     }
 
     if (!validPassword) return res.status(401).json({ message: "รหัสผ่านผิด" });
