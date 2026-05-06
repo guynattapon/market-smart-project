@@ -15,7 +15,7 @@ const port = process.env.PORT || 3000;
 // 🗄️ การเชื่อมต่อฐานข้อมูล (Supabase Cloud)
 // ==========================================
 const pool = new Pool({
-  connectionString: 'postgresql://postgres:GuyKarakate450@db.qgrqyucsajgjrkxusegy.supabase.co:5432/postgres',
+  connectionString: process.env.DATABASE_URL, // <--- แก้เป็นบรรทัดนี้ เพื่อให้ดึงค่าจาก Render
   ssl: {
     rejectUnauthorized: false 
   }
