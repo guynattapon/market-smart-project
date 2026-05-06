@@ -76,7 +76,13 @@ app.post('/login', async (req, res) => {
     if (result.rows.length === 0) return res.status(401).json({ message: "ไม่พบผู้ใช้งาน" });
     
     const user = result.rows[0];
-    let validPassword = false;
+const dbPassword = user.password_hash; // <--- ใช้ชื่อคอลัมน์ให้ตรงกับในรูป (password_hash)
+
+if (dbPassword && (dbPassword.startsWith('$2a$') || dbPassword.startsWith('$2b$'))) {
+    validPassword = await bcrypt.compare(password, dbPassword);
+} else {
+    validPassword = (password === dbPassword);
+}
     
     // ตรวจสอบรหัสผ่าน (รองรับทั้ง bcrypt และ text ธรรมดา)
     if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
