@@ -72,32 +72,31 @@ const sendLineNotify = async (message) => {
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {
-    await pool.query(
-    `INSERT INTO users (username, password_hash, full_name, phone_number, id_card_number, role) 
-     VALUES ($1, $2, $3, $4, $5, 'tenant')`, 
-    [username, hashedPassword, full_name, phone_number, id_card_number]
-);
+    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    if (result.rows.length === 0) return res.status(401).json({ message: "ไม่พบผู้ใช้งาน" });
     
     const user = result.rows[0];
     let validPassword = false;
     
-    // *** จุดสำคัญ: ต้องใช้ user.password_hash ให้ตรงกับในฐานข้อมูล ***
+    // --- จุดที่ต้องเช็ก: สร้างตัวแปรชื่อ dbPassword มารับค่าจากฐานข้อมูล ---
     const dbPassword = user.password_hash; 
 
     if (dbPassword && (dbPassword.startsWith('$2a$') || dbPassword.startsWith('$2b$'))) {
-        // ถ้าเป็นรหัสแบบเข้ารหัส (เช่นของ Guy123)
+        // ตรงนี้ต้องใช้ dbPassword ให้เหมือนข้างบน (ห้ามพิมพ์ hashedPassword)
         validPassword = await bcrypt.compare(password, dbPassword);
     } else {
-        // ถ้าเป็นรหัสธรรมดา (เช่น 1234 ของ admin)
+        // ตรงนี้ก็ต้องใช้ dbPassword
         validPassword = (password === dbPassword);
     }
 
     if (!validPassword) return res.status(401).json({ message: "รหัสผ่านผิด" });
 
     res.json({ user_id: user.user_id, username: user.username, role: user.role, full_name: user.full_name });
-  } catch (err) { console.error(err); res.status(500).send(err.message); }
+  } catch (err) { 
+    console.error(err); 
+    res.status(500).send(err.message); 
+  }
 });
-
 app.post('/register', async (req, res) => {
   const { username, password, full_name, phone_number, id_card_number } = req.body;
   if (!username || !password || !full_name || !phone_number || !id_card_number) {
