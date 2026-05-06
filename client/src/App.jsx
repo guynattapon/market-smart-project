@@ -9,7 +9,7 @@ import {
 import './App.css';
 import * as XLSX from 'xlsx';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://market-smart-project.onrender.com';
 const api = axios.create({ baseURL: API_URL });
 
 // 🌟 1. Component สำหรับสร้าง "แผง 1 ช่อง" (ดึงจาก DB ล้วนๆ ไม่มีตัวจำลองแล้ว)
