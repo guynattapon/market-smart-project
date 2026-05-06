@@ -72,8 +72,11 @@ const sendLineNotify = async (message) => {
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {
-    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-    if (result.rows.length === 0) return res.status(401).json({ message: "ไม่พบผู้ใช้งาน" });
+    await pool.query(
+    `INSERT INTO users (username, password_hash, full_name, phone_number, id_card_number, role) 
+     VALUES ($1, $2, $3, $4, $5, 'tenant')`, 
+    [username, hashedPassword, full_name, phone_number, id_card_number]
+);
     
     const user = result.rows[0];
     let validPassword = false;
